@@ -89,16 +89,11 @@ class UserInterface(Root):
 
         input_df = pd.DataFrame([input_data])
 
-        # DEBUG: Sprawdzenie cech modelu
-        print(f"🛠️ Debug: Cechy modelu: {self.model.features.columns.tolist()}")
-
         # Sprawdzamy, czy model został poprawnie załadowany i ma cechy
         if self.model is None or self.model.features is None or self.model.features.empty:
             messagebox.showerror("Błąd", "Model nie został poprawnie załadowany! Najpierw kliknij 'Trenuj Model'.")
             print("❌ Debug: Model nie ma poprawnych cech!")
             return
-
-        print(f"✅ Debug: Model ma cechy: {self.model.features.columns.tolist()}")
 
         # Sprawdzamy, czy wszystkie kolumny są zgodne
         missing_cols = set(self.model.features.columns) - set(input_df.columns)
