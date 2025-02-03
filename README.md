@@ -62,7 +62,7 @@ python main.py
 ---
 
 ## **Presentation**  
-Screenshots or demo videos should be added here to illustrate the application's functionality.  
+![Application Preview](./resources/app_preview.png)
 
 ---
 
@@ -79,6 +79,12 @@ Screenshots or demo videos should be added here to illustrate the application's 
 - Improve data collection with multiple sources.  
 - Enhance the ML model using more advanced algorithms.  
 - Develop a web-based version using Flask or Django.  
+
+---
+
+## **Author**
+
+Project created by Oskar Bełza. If you have any questions or suggestions, feel free to reach out!
 
 ---
 
