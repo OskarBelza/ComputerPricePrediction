@@ -5,119 +5,165 @@ from tkinter import messagebox
 
 class Root(tb.Window):
     def __init__(self):
-        super().__init__(themename='darkly')
+        """
+        Initializes the root window of the application with a predefined theme.
+        """
+        super().__init__(themename='darkly')  # Dark mode theme for better visibility
         self.title('Computer Price Prediction')
-        self.geometry('500x550')  # Powiększone okno, aby zmieścić przycisk trenowania
+        self.geometry('500x550')  # Window size adjusted to fit all UI components
 
 
 class UserInterface(Root):
     def __init__(self, model, train_callback):
+        """
+        Creates the graphical interface for user interaction.
+
+        :param model: The machine learning model used for price prediction.
+        :param train_callback: Function to retrain the model.
+        """
         super().__init__()
-        self.model = model  # Przechowujemy model predykcyjny
-        self.train_callback = train_callback  # Funkcja do trenowania modelu
+        self.button_confirm = None
+        self.combobox_condition = None
+        self.combobox_os = None
+        self.combobox_storage = None
+        self.combobox_ram = None
+        self.combobox_graphic_card = None
+        self.combobox_processor = None
+        self.button_train = None
+        self.model = model  # Store the predictive model
+        self.train_callback = train_callback  # Function for training the model
 
-        self.label_powitalny = tb.Label(self, text="Welcome to Computer Price Prediction", font=('Helvetica', 16),
-                                        justify="center", bootstyle="default")
-        self.label_powitalny.place(relx=0.5, rely=0.08, anchor="center")
+        # Welcome Label
+        self.label_welcome = tb.Label(self, text="Welcome to Computer Price Prediction",
+                                      font=('Helvetica', 16), justify="center", bootstyle="default")
+        self.label_welcome.place(relx=0.5, rely=0.08, anchor="center")
 
-        # Procesor (kategorie zamiast modeli)
-        self.label_procesor = tb.Label(self, text="Procesor:")
-        self.label_procesor.place(relx=0.3, rely=0.15, anchor="center")
-        self.combobox_procesor = tb.Combobox(self, values=["Intel i3", "Intel i5", "Intel i7", "Intel i9", "Intel Xeon",
-                                                            "AMD Ryzen 3", "AMD Ryzen 5", "AMD Ryzen 7", "AMD Ryzen 9"])
-        self.combobox_procesor.place(relx=0.6, rely=0.15, anchor="center")
+        # Dropdown menus for selecting computer specifications
+        self.create_comboboxes()
 
-        # Karta graficzna (kategorie)
-        self.label_karta_graficzna = tb.Label(self, text="Karta Graficzna:")
-        self.label_karta_graficzna.place(relx=0.3, rely=0.25, anchor="center")
-        self.combobox_karta_graficzna = tb.Combobox(self, values=["NVIDIA GTX", "NVIDIA RTX", "AMD Radeon",
-                                                                  "NVIDIA Quadro", "Intel Integrated"])
-        self.combobox_karta_graficzna.place(relx=0.6, rely=0.25, anchor="center")
+        # Buttons for confirming price prediction and training the model
+        self.create_buttons()
+
+    def create_comboboxes(self):
+        """
+        Creates dropdown selection boxes for various computer specifications.
+        """
+        # Processor
+        self.create_label("Processor:", 0.15)
+        self.combobox_processor = self.create_combobox(["Intel i3", "Intel i5", "Intel i7", "Intel i9", "Intel Xeon",
+                                                        "AMD Ryzen 3", "AMD Ryzen 5", "AMD Ryzen 7", "AMD Ryzen 9"],
+                                                       0.15)
+
+        # Graphics Card
+        self.create_label("Graphics Card:", 0.25)
+        self.combobox_graphic_card = self.create_combobox(["NVIDIA GTX", "NVIDIA RTX", "AMD Radeon",
+                                                           "NVIDIA Quadro", "Intel Integrated"], 0.25)
 
         # RAM
-        self.label_ram = tb.Label(self, text="RAM:")
-        self.label_ram.place(relx=0.3, rely=0.35, anchor="center")
-        self.combobox_ram = tb.Combobox(self, values=["8GB", "16GB", "32GB", "64GB"])
-        self.combobox_ram.place(relx=0.6, rely=0.35, anchor="center")
+        self.create_label("RAM:", 0.35)
+        self.combobox_ram = self.create_combobox(["8GB", "16GB", "32GB", "64GB"], 0.35)
 
-        # Pamięć (Dysk)
-        self.label_pamiec = tb.Label(self, text="Pamięć:")
-        self.label_pamiec.place(relx=0.3, rely=0.45, anchor="center")
-        self.combobox_pamiec = tb.Combobox(self, values=["HDD", "SSD", "NVMe"])
-        self.combobox_pamiec.place(relx=0.6, rely=0.45, anchor="center")
+        # Storage
+        self.create_label("Storage:", 0.45)
+        self.combobox_storage = self.create_combobox(["HDD", "SSD", "NVMe"], 0.45)
 
-        # System Operacyjny
-        self.label_system_operacyjny = tb.Label(self, text="System Operacyjny:")
-        self.label_system_operacyjny.place(relx=0.3, rely=0.55, anchor="center")
-        self.combobox_system_operacyjny = tb.Combobox(self, values=["Windows", "Linux", "Brak OS"])
-        self.combobox_system_operacyjny.place(relx=0.6, rely=0.55, anchor="center")
+        # Operating System
+        self.create_label("Operating System:", 0.55)
+        self.combobox_os = self.create_combobox(["Windows", "Linux", "No OS"], 0.55)
 
-        # Stan sprzętu
-        self.label_stan = tb.Label(self, text="Stan:")
-        self.label_stan.place(relx=0.3, rely=0.65, anchor="center")
-        self.combobox_stan = tb.Combobox(self, values=["Nowy", "Bardzo dobry", "Używany", "Uszkodzony"])
-        self.combobox_stan.place(relx=0.6, rely=0.65, anchor="center")
+        # Condition
+        self.create_label("Condition:", 0.65)
+        self.combobox_condition = self.create_combobox(["New", "Very Good", "Used", "Damaged"], 0.65)
 
-        # Przycisk do przewidywania ceny (dezaktywowany, jeśli brak modelu)
+    def create_label(self, text, rel_y):
+        """
+        Helper function to create labels for input fields.
+        """
+        label = tb.Label(self, text=text)
+        label.place(relx=0.3, rely=rel_y, anchor="center")
+
+    def create_combobox(self, values, rel_y):
+        """
+        Helper function to create dropdown comboboxes.
+        """
+        combobox = tb.Combobox(self, values=values)
+        combobox.place(relx=0.6, rely=rel_y, anchor="center")
+        return combobox
+
+    def create_buttons(self):
+        """
+        Creates buttons for confirming predictions and training the model.
+        """
+        # Confirm button for price prediction
         self.button_confirm = tb.Button(self, text="Confirm", command=self.confirm, bootstyle="secondary")
         self.button_confirm.place(relx=0.5, rely=0.8, anchor="center")
 
+        # Disable confirm button if no model is loaded
         if self.model is None:
             self.button_confirm["state"] = "disabled"
 
-        # Przycisk do trenowania modelu
-        self.button_train = tb.Button(self, text="Trenuj Model", command=self.train_model, bootstyle="primary")
+        # Train Model button
+        self.button_train = tb.Button(self, text="Train Model", command=self.train_model, bootstyle="primary")
         self.button_train.place(relx=0.5, rely=0.9, anchor="center")
 
     def confirm(self):
+        """
+        Handles confirmation button click and triggers price prediction.
+        """
         self.predict_price()
 
     def predict_price(self):
-        """ Pobiera wartości z GUI i przewiduje cenę """
+        """
+        Predicts the price of a computer based on user input.
+        """
         input_data = {
-            "processor": self.combobox_procesor.get(),
-            "graphic_card": self.combobox_karta_graficzna.get(),
+            "processor": self.combobox_processor.get(),
+            "graphic_card": self.combobox_graphic_card.get(),
             "ram": self.combobox_ram.get(),
-            "disk": self.combobox_pamiec.get(),
-            "os": self.combobox_system_operacyjny.get(),
-            "condition": self.combobox_stan.get()
+            "disk": self.combobox_storage.get(),
+            "os": self.combobox_os.get(),
+            "condition": self.combobox_condition.get()
         }
 
+        # Check if all fields are filled
         if "" in input_data.values():
-            messagebox.showwarning("Brak danych", "Proszę uzupełnić wszystkie pola przed kontynuacją.")
+            messagebox.showwarning("Missing Data", "Please fill in all fields before proceeding.")
             return
 
         input_df = pd.DataFrame([input_data])
 
-        # Sprawdzamy, czy model został poprawnie załadowany i ma cechy
+        # Ensure the model is loaded and ready
         if self.model is None or self.model.features is None or self.model.features.empty:
-            messagebox.showerror("Błąd", "Model nie został poprawnie załadowany! Najpierw kliknij 'Trenuj Model'.")
-            print("❌ Debug: Model nie ma poprawnych cech!")
+            messagebox.showerror("Error", "The model is not properly loaded! Please train it first.")
             return
 
-        # Sprawdzamy, czy wszystkie kolumny są zgodne
+        # Ensure the input columns match the model’s expected features
         missing_cols = set(self.model.features.columns) - set(input_df.columns)
         if missing_cols:
-            messagebox.showerror("Błąd", f"Brakujące kolumny: {missing_cols}")
+            messagebox.showerror("Error", f"Missing columns: {missing_cols}")
             return
 
-        input_df = input_df[self.model.features.columns]  # Zapewnienie zgodności kolumn
+        # Align input data with model features
+        input_df = input_df[self.model.features.columns]
 
         try:
             predicted_price = self.model.predict(input_df)[0]
-            messagebox.showinfo("Przewidywana cena", f"Szacowana cena: {predicted_price:.2f} zł")
+            messagebox.showinfo("Predicted Price", f"Estimated price: {predicted_price:.2f} zł")
         except Exception as e:
-            messagebox.showerror("Błąd", f"Nie udało się przewidzieć ceny: {str(e)}")
+            messagebox.showerror("Error", f"Prediction failed: {str(e)}")
 
     def update_model(self, new_model):
-        """ Aktualizuje model w GUI po ponownym trenowaniu """
+        """
+        Updates the model in the UI after retraining.
+        """
         self.model = new_model
-        self.button_confirm["state"] = "normal"
-        print("✅ Model zaktualizowany w GUI!")
+        self.button_confirm["state"] = "normal"  # Enable the confirm button
+        print("✅ Model updated in GUI!")
 
     def train_model(self):
-        """ Trenuje model i aktywuje przycisk „Confirm” """
+        """
+        Trains the model and updates the UI.
+        """
         self.train_callback()
         self.button_confirm["state"] = "normal"
-        messagebox.showinfo("Sukces", "Model został ponownie wytrenowany i zapisany!")
-
+        messagebox.showinfo("Success", "The model has been retrained and saved!")
