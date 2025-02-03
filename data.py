@@ -1,27 +1,28 @@
 import bs4
 import requests
-import re
-import json
 import numpy as np
 import pandas as pd
-
 
 class Data:
     def __init__(self):
         self.url = "https://zikom.pl/poleasingowe-komputery-stacjonarne/"
         self.main_page = self.load_main_page()
-        # self.computer_data = self.load_computer_data()
+
+    def load_main_page(self):
+        try:
+            page = requests.get(self.url, timeout=5)
+            page.raise_for_status()
+            return bs4.BeautifulSoup(page.content, 'html.parser')
+        except requests.exceptions.RequestException as e:
+            print(f"Błąd pobierania strony: {e}")
+            return None
 
     def get_number_of_pages(self):
         return int(self.main_page.find_all('a', class_="js-search-link")[-2].text.strip())
 
-    def load_main_page(self):
-        page = requests.get(self.url)
-        soup = bs4.BeautifulSoup(page.content, 'html.parser')
-        return soup
 
     def load_computer_data(self):
-        computer_data = {'processor': [], 'disk': [], 'ram': [], 'os': [], 'condition': [], 'grapic_card': [], 'price': []}
+        computer_data = {'processor': [], 'disk': [], 'ram': [], 'os': [], 'condition': [], 'graphic_card': [], 'price': []}
         for i in range(1, self.get_number_of_pages() + 1):
             page = requests.get(self.url + "?page=" + str(i))
             soup = bs4.BeautifulSoup(page.content, 'html.parser')
@@ -53,9 +54,9 @@ class Data:
                     computer_data['condition'].append(np.nan)
                 grapic_card = block.find('td', class_='kp-tabela-tdleft', string='Karta graficzna:')
                 if grapic_card and grapic_card.find_next('td', class_='kp-tabela-tdright'):
-                    computer_data['grapic_card'].append(grapic_card.find_next('td', class_='kp-tabela-tdright').text.strip().replace("\xa0", ""))
+                    computer_data['graphic_card'].append(grapic_card.find_next('td', class_='kp-tabela-tdright').text.strip().replace("\xa0", ""))
                 else:
-                    computer_data['grapic_card'].append(np.nan)
+                    computer_data['graphic_card'].append(np.nan)
 
                 price_div = block.find_previous('div', class_='product-price-and-shipping hidden-md-up')
                 if price_div:
